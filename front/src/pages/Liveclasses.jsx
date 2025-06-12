@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
 import { useParams } from 'react-router-dom';
-const APP_ID = "3dcd74c98aa4456fb4ff452a063269d6";
+//agora app Id
+const APP_ID = process.env.REACT_APP_APP_ID;
 const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
 
 function LiveClass() {

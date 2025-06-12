@@ -1,0 +1,49 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+
+# React/Vite/Frontend build
+front/dist/
+*.log
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Environment files
+.env
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build
+build/
+*.tsbuildinfo
+
+# Ignore backups
+*.bak
+*.swp
+
+# Cache
+.cache/
+.cache-loader/
