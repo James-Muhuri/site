@@ -42,7 +42,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore(); // Firestore database reference
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors);
 
 
 
