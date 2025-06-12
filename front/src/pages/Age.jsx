@@ -32,7 +32,7 @@ const Age = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/age-transform`,
+        `http://35.238.132.12:/age-transform`,
         formData,
         {
           headers: {
