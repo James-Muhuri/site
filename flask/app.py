@@ -806,6 +806,145 @@ logging.debug("Starting cleanup thread for old files.")
 start_cleanup_thread()
 
 
+
+
+
+
+
+#lib project 
+# --- Sync.so API integration ---
+class SyncSo:
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.headers = {
+            'Authorization': f'Bearer {self.api_key}'
+        }
+
+    def create_voice_model(self, audio_stream, user_id):
+        files = {'file': ('voice.wav', audio_stream, 'audio/wav')}
+        data = {'user_id': user_id}
+        response = requests.post(
+            'https://api.sync.so/v1/voice/create',
+            headers=self.headers,
+            files=files,
+            data=data
+        )
+        if response.status_code != 200:
+            raise Exception("Failed to create voice model")
+        return response.json().get('voice_id')
+
+    def generate_audio_and_timestamps(self, voice_id, text):
+        json_data = {
+            'voice_id': voice_id,
+            'text': text,
+            'include_timestamps': True
+        }
+        response = requests.post(
+            'https://api.sync.so/v1/voice/speak',
+            headers={**self.headers, 'Content-Type': 'application/json'},
+            json=json_data
+        )
+        if response.status_code != 200:
+            raise Exception("Failed to generate audio")
+        data = response.json()
+        return data['audio_url'], data['timestamps']
+
+
+# Initialize SyncSo with API key from environment
+syncso = SyncSo(os.getenv("SYNC_API_KEY"))
+
+
+#lib
+
+# you can ask either year,title,author
+@app.route('/search')
+def search_books():
+    # Combine possible search keys: title, author, year
+    title = request.args.get('title')
+    author = request.args.get('author')
+    year = request.args.get('year')
+
+    # Prioritize search order
+    query = title or author or year
+
+    if not query:
+        return jsonify({'results': []})
+
+    # --- Gutenberg API: Search books endpoint ---
+    # Replace below with your real API call if needed
+    response = requests.get(f'https://gutendex.com/books?search={query}')
+    # response = YOUR_REAL_GUTENBERG_SEARCH_API(query)
+    results = response.json().get('results', [])
+    books = [{
+        'id': book['id'],
+        'title': book['title'],
+        'author': book['authors'][0]['name'] if book['authors'] else 'Unknown'
+    } for book in results]
+
+    return jsonify({'results': books})
+
+
+@app.route('/book/<int:book_id>')
+def get_book(book_id):
+    # --- Gutenberg API: Fetch full book text by ID ---
+    # Replace below with your real API call if needed
+    response = requests.get(f'https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt')
+    # response = YOUR_REAL_GUTENBERG_BOOK_TEXT_API(book_id)
+
+    if response.status_code != 200:
+        response = requests.get(f'https://www.gutenberg.org/files/{book_id}/{book_id}.txt')
+        # try alternative endpoint or real API here if needed
+        if response.status_code != 200:
+            return 'Book not found', 404
+
+    return response.text
+
+
+@app.route('/upload-audio', methods=['POST'])
+def upload_audio():
+    # Get uploaded audio file (user's voice sample)
+    file = request.files['audio']
+
+    # Optionally get book_id from query parameters or JSON payload
+    book_id = request.form.get('book_id')  # assuming form-data sent with audio + book_id
+    if not book_id:
+        return jsonify({"error": "Missing book_id"}), 400
+
+    # Create a unique user ID for voice cloning session
+    user_id = str(uuid.uuid4())
+
+    # --- Sync.so API: Upload voice sample and create voice model ---
+    voice_model = syncso.create_voice_model(file.stream, user_id)
+
+    # --- Fetch book text dynamically using book_id ---
+    # You can call your own API internally or directly fetch Gutenberg text here
+    # Example: fetch from your own backend route
+    book_text_response = requests.get(f'http://localhost:8000/book/{book_id}')  # updated to correct port
+    if book_text_response.status_code != 200:
+        return jsonify({"error": "Book not found"}), 404
+    text = book_text_response.text
+
+    # --- Sync.so API: Generate speech audio & word-level timestamps ---
+    audio_url, timestamps = syncso.generate_audio_and_timestamps(voice_model, text)
+
+    # Return generated audio URL, book text, and timestamps to frontend
+    return jsonify({
+        "audio_url": audio_url,
+        "text": text,
+        "timestamps": timestamps
+    })
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     # Enable debug mode for development
     app.debug = True  # or app.config["DEBUG"] = True

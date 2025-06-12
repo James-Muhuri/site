@@ -1,38 +1,57 @@
 import { useState } from "react";
 import { Button, FormControl } from "react-bootstrap";
 import axios from "axios";
-import React from 'react';
+import React from "react";
+import AdBanner from '../components/AdBanner'; // Import your ad component
+
 
 function Imagination() {
   const [description, setDescription] = useState("");
   const [responseImage, setResponseImage] = useState(null);
 
+  // Track submission count and ad visibility
+  const [submitCount, setSubmitCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
+
   const handleUpload = async () => {
     const formData = new FormData();
     formData.append("description", description);
 
-    
-  // Log the form data to see what is being sent
-  console.log("Form Data:", formData);
+    // Log the form data to see what is being sent
+    console.log("Form Data:", formData);
 
-  try {
-   const res = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/generate-vision`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Ensure this header is set correctly
-      },
-    });
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/generate-vision`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Ensure this header is set correctly
+          },
+        }
+      );
 
-    console.log("Response from backend:", res.data);
+      console.log("Response from backend:", res.data);
 
-    setResponseImage({
-      remoteUrl: res.data.imageUrl,
-      localFile: res.data.localFile,
-    });
-  } catch (err) {
-    console.error("Upload failed:", err);
-  }
-};
-  
+      setResponseImage({
+        remoteUrl: res.data.imageUrl,
+        localFile: res.data.localFile,
+      });
+
+      // Increment submission count and show ad every 3 submissions
+      setSubmitCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 2 === 0) {
+          setShowAd(true);
+          setTimeout(() => setShowAd(false), 30000); // Hide ad after 30 seconds
+        }
+        return newCount;
+      });
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       alert("Copied to clipboard!");
@@ -55,7 +74,7 @@ function Imagination() {
         {responseImage && (
           <div style={{ flex: 1, marginRight: "10px", minWidth: "200px" }}>
             <img
-              src={responseImage.remoteUrl} 
+              src={responseImage.remoteUrl}
               alt="AI Generated"
               style={{
                 width: "100%",
@@ -64,7 +83,7 @@ function Imagination() {
               }}
             />
             <a
-href={`${process.env.REACT_APP_PYTHON_API_URL}/download/imagination/${responseImage.localFile}`}
+              href={`http://localhost:8000/download/imagination/${responseImage.localFile}`}
               download="ai_imagination.png"
               style={{
                 textDecoration: "none",
@@ -122,6 +141,9 @@ href={`${process.env.REACT_APP_PYTHON_API_URL}/download/imagination/${responseIm
         )}
       </div>
 
+      {/* Show ad every 3 submissions */}
+      {showAd && <AdBanner />}
+
       {/* Input Area */}
       <div
         style={{
@@ -166,7 +188,12 @@ href={`${process.env.REACT_APP_PYTHON_API_URL}/download/imagination/${responseIm
           }}
         >
           <Button variant="light" onClick={handleUpload}>
-            <img src="/Upload.png" width="25px" height="25px" alt="upload-icon" />
+            <img
+              src="/Upload.png"
+              width="25px"
+              height="25px"
+              alt="upload-icon"
+            />
           </Button>
         </div>
       </div>

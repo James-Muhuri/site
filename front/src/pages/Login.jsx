@@ -22,7 +22,7 @@ const Login = () => {
 
     try {
       // 🔐 Send login credentials
-     const res = await axios.post(`${process.env.REACT_APP_EXPRESS_API_URL}/api/login`, { username, password });
+     const res = await axios.post(`http://localhost:5000/api/login`, { username, password });
 
       // 🪪 Save token and user ID for session
       localStorage.setItem('token', res.data.token);

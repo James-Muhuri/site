@@ -1,45 +1,66 @@
-import React from 'react'
+import React from 'react';
 import { Outlet, Link, useLocation } from "react-router-dom";
 
 function Layout() {
   const location = useLocation();
 
   return (
-    <div id="div">
-      <header> 
-        <img src={"/Logo.png"} width="44px" height="44px" alt="LanvAI logo"/>
+    <div id="div" className="d-flex flex-column min-vh-100">
+      <header className="bg-light p-2 text-center border-bottom">
+        <img src={"/Logo.png"} width="44px" height="44px" alt="LanvAI logo" />
       </header>
-      <main>
-        <Outlet /> 
+
+      <main className="flex-grow-1 container py-3">
+        <Outlet />
       </main>
+
       <footer>
-        <nav className="navbar navbar-light bg-light fixed-bottom">
-          <div className="container-fluid p-0">
-            <div className="row w-100 m-0 text-center">
-              <div className="col-4 p-2">
-                <Link
-                  className={`nav-link ${location.pathname === "/" ? "active fw-bold" : ""}`}
-                  to="/"
-                >
-                  AI
-                </Link>
-              </div>
-              <div className="col-4 p-2">
-                <Link
-                  className={`nav-link ${location.pathname === "/picture" ? "active fw-bold" : ""}`}
-                  to="/picture"
-                >
-                  Picture
-                </Link>
-              </div>
-              <div className="col-4 p-2">
-                <Link
-                  className={`nav-link ${location.pathname === "/course" ? "active fw-bold" : ""}`}
-                  to="/course"
-                >
-                  Course
-                </Link>
-              </div>
+        <nav className="navbar navbar-light bg-light fixed-bottom border-top">
+          <div className="container-fluid px-3">
+            <div className="d-flex justify-content-between w-100 flex-wrap text-center">
+
+              <Link
+                className={`nav-link ${location.pathname === "/" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/"
+              >
+                AI
+              </Link>
+
+              <Link
+                className={`nav-link ${location.pathname === "/picture" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/picture"
+              >
+                Fantacy
+              </Link>
+
+              <Link
+                className={`nav-link ${location.pathname === "/course" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/course"
+              >
+                Course
+              </Link>
+
+              <Link
+                className={`nav-link ${location.pathname === "/search" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/search"
+              >
+                Lib
+              </Link>
+
+              <Link
+                className={`nav-link ${location.pathname === "/welcome" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/welcomeorganizations"
+              >
+                Course Offering
+              </Link>
+
+              <Link
+                className={`nav-link ${location.pathname === "/welcomelearners" ? "active fw-bold text-primary" : "text-dark"}`}
+                to="/welcomelearners"
+              >
+                Course Display
+              </Link>
+
             </div>
           </div>
         </nav>

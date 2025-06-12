@@ -15,7 +15,7 @@ function Documentaries() {
       setLoading(true);
       try {
        const response = await fetch(
-  `${process.env.REACT_APP_EXPRESS_API_URL}/documentaries?page=${page}&limit=20`
+  `http://localhost:5000/documentaries?page=${page}&limit=20`
 
         );
         const data = await response.json();

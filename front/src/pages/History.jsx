@@ -26,7 +26,7 @@ function History() {
     setLoading(true);
 
     try {
-      const response = await axios.get( `${process.env.REACT_APP_EXPRESS_API_URL}/api/user/${userId}/history`, {
+      const response = await axios.get( `http://localhost:5000/api/user/${userId}/history`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // Send token with request
         },

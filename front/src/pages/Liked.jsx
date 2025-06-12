@@ -21,7 +21,7 @@ function Liked() {
     if (userId) {
       const fetchLikedVideos = async () => {
         try {
-        const response = await axios.get(`${process.env.REACT_APP_EXPRESS_API_URL}/user/${userId}/liked-videos`);
+        const response = await axios.get(`http://localhost:5000/user/${userId}/liked-videos`);
           if (response.data.success) {
             // Add `liked: true` property to each video
             const videosWithLikeState = response.data.likedVideos.map(video => ({
@@ -46,7 +46,7 @@ function Liked() {
   // Handle like/unlike toggle
   const toggleLike = async (videoId) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_EXPRESS_API_URL}/user/${userId}/like`, { videoId });
+      const response = await axios.post(`http://localhost:5000/user/${userId}/like`, { videoId });
 
       if (response.data.success) {
         // Optimistically update UI without re-fetching

@@ -24,10 +24,11 @@ function AI() {
   const [userDataFiles, setUserDataFiles] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // New state: count of form data submissions
+  const [submissionCount, setSubmissionCount] = useState(0);
+
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
-
-
 
   const handleTextChange = (e) => setTextQuery(e.target.value);
 
@@ -46,59 +47,72 @@ function AI() {
     setFiles(prev => [...prev, ...newFiles]);
   };
 
-const handleUpload = async () => {
-  const formData = new FormData();
-  const user_id = localStorage.getItem("user_id");
+  const handleUpload = async () => {
+    const formData = new FormData();
+    const user_id = localStorage.getItem("user_id");
 
-  if (textQuery) formData.append("text", textQuery);
-  formData.append("source", source);
-  formData.append("user_id", user_id);
-  files.forEach(file => formData.append("image", file));
+    if (textQuery) formData.append("text", textQuery);
+    formData.append("source", source);
+    formData.append("user_id", user_id);
+    files.forEach(file => formData.append("image", file));
 
-  try {
-    setLoading(true);
-    setUploadIcon("/loading.png");
+    try {
+      setLoading(true);
+      setUploadIcon("/loading.png");
 
-    let res;
-    if (webClicked) {
-      
-      res = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/websearch`, { text: textQuery });
-} else {
-  res = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/ai-image-insight`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
-    }
-
-    if (res?.data?.answer) {
-      setChatHistory(prev => [
-        ...prev,
-        { user: textQuery || files.map(f => f.name).join(", "), ai: res.data.answer }
-      ]);
-      setAiAnswer(res.data.answer);
-
-      if (whyClicked) {
-        const reasonRes = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/get-reasoning`, {
-          text: textQuery || files.map(f => f.name).join(", "),
-          answer: res.data.answer,
-          user_id: user_id
+      let res;
+      if (webClicked) {
+        res = await axios.post(`http://localhost:8000/websearch`, { text: textQuery });
+      } else {
+       res = await axios.post(`http://localhost:8000/ai-image-insight`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         });
-        setReason(reasonRes.data.reasoning);
       }
-    }
 
-    setTextQuery("");
-    setFiles([]);
-    setWebClicked(false);
-  } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    setLoading(false);
-    setUploadIcon("/Upload.png");
-    setWhyClicked(false);
-  }
-};
+      if (res?.data?.answer) {
+        // Add user input + AI answer to chat history
+        setChatHistory(prev => {
+          const updated = [
+            ...prev,
+            { user: textQuery || files.map(f => f.name).join(", "), ai: res.data.answer }
+          ];
+          // Update submission count only if it's a real submission (not web search)
+          if (!webClicked) {
+            const newCount = submissionCount + 1;
+            setSubmissionCount(newCount);
+            // After every 3 submissions, add an ad entry
+            if (newCount % 3 === 0) {
+              updated.push({ ad: true, id: `ad-${newCount}` });
+            }
+          }
+          return updated;
+        });
+
+        setAiAnswer(res.data.answer);
+
+        if (whyClicked) {
+          const reasonRes = await axios.post(`http://localhost:8000/get-reasoning`, {
+            text: textQuery || files.map(f => f.name).join(", "),
+            answer: res.data.answer,
+            user_id: user_id
+          });
+          setReason(reasonRes.data.reasoning);
+        }
+      }
+
+      setTextQuery("");
+      setFiles([]);
+      setWebClicked(false);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+      setUploadIcon("/Upload.png");
+      setWhyClicked(false);
+    }
+  };
   const handleWhy = () => setWhyClicked(true);
   const handleWebsearch = () => setWebClicked(true);
 
@@ -256,7 +270,6 @@ const handleUpload = async () => {
             )}
           </div>
 
-    
           <Button
             variant="light"
             style={{
@@ -296,22 +309,32 @@ const handleUpload = async () => {
 
       {/* Chat History */}
       <div style={{ maxHeight: "300px", overflowY: "auto", marginTop: "10px" }}>
-        {chatHistory.map((entry, index) => (
-          <div key={index}>
-            <div className="d-flex justify-content-end mb-2">
-              <div className="p-2 bg-secondary text-white rounded d-flex justify-content-between align-items-center" style={{ maxWidth: "70%" }}>
-                <span>{entry.user}</span>
-                <Button variant="link" size="sm" onClick={() => copyToClipboard(entry.user)}>📋</Button>
+        {chatHistory.map((entry, index) => {
+          if (entry.ad) {
+            // Render Ad placeholder/banner here
+            return (
+              <div key={entry.id || index} style={{ textAlign: "center", margin: "20px 0", padding: "10px", backgroundColor: "#e0f7fa", borderRadius: "10px", fontWeight: "bold" }}>
+                🚀 Advertisement - Your Ad Here 🚀
+              </div>
+            );
+          }
+          return (
+            <div key={index}>
+              <div className="d-flex justify-content-end mb-2">
+                <div className="p-2 bg-secondary text-white rounded d-flex justify-content-between align-items-center" style={{ maxWidth: "70%" }}>
+                  <span>{entry.user}</span>
+                  <Button variant="link" size="sm" onClick={() => copyToClipboard(entry.user)}>📋</Button>
+                </div>
+              </div>
+              <div className="d-flex justify-content-start mb-2">
+                <div className="p-2 bg-light text-dark rounded d-flex justify-content-between align-items-center" style={{ maxWidth: "70%", whiteSpace: "pre-wrap", userSelect: "text", cursor: "text" }}>
+                  <span>{entry.ai}</span>
+                  <Button variant="link" size="sm" onClick={() => copyToClipboard(entry.ai)}>📋</Button>
+                </div>
               </div>
             </div>
-            <div className="d-flex justify-content-start mb-2">
-              <div className="p-2 bg-light text-dark rounded d-flex justify-content-between align-items-center" style={{ maxWidth: "70%", whiteSpace: "pre-wrap", userSelect: "text", cursor: "text" }}>
-                <span>{entry.ai}</span>
-                <Button variant="link" size="sm" onClick={() => copyToClipboard(entry.ai)}>📋</Button>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

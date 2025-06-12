@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
+import AdBanner from '../components/AdBanner'; // Import your ad component
 
 function Avatar() {
   const [avatarFile, setAvatarFile] = useState(null);
@@ -7,6 +8,9 @@ function Avatar() {
   const [resultMessage, setResultMessage] = useState('');
   const [videoUrl, setVideoUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false); // State to manage loading spinner
+
+  const [submitCount, setSubmitCount] = useState(0);  // Count how many times form submitted
+  const [showAd, setShowAd] = useState(false);        // Whether to show ad
 
   // Handle avatar image selection
   const handleAvatarSelect = (event) => {
@@ -43,7 +47,7 @@ function Avatar() {
 
     try {
       // Make a POST request to the backend
-     const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/api/upload-avatar`, {
+      const response = await fetch(`http://localhost:8000/api/upload-avatar`, {
         method: "POST",
         body: formData,
       });
@@ -59,6 +63,19 @@ function Avatar() {
         // Handle errors from backend
         setResultMessage(`Error: ${data.error}`);
       }
+
+      // Increment submission count
+      setSubmitCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 2 === 0) {
+          // Show ad every 4 submissions
+          setShowAd(true);
+          // Hide ad automatically after 30 seconds
+          setTimeout(() => setShowAd(false), 30000);
+        }
+        return newCount;
+      });
+
     } catch (err) {
       // Handle any fetch or network errors
       setIsProcessing(false); // Set loading state to false on error
@@ -99,6 +116,9 @@ function Avatar() {
           Upload
         </button>
       </form>
+
+      {/* Show ad after every 4 submissions */}
+      {showAd && <AdBanner />}
 
       {/* Preview selected files BEFORE upload */}
       {(avatarFile || audioFile) && (

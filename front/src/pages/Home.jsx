@@ -11,7 +11,7 @@ function Home() {
   const LIMIT = 10;
 
   const fetchVideos = async (currentPage = 1) => {
-    const endpoint =  `${process.env.REACT_APP_EXPRESS_API_URL}/all-videos?page=${currentPage}&limit=${LIMIT}`;
+    const endpoint =  `http://localhost:5000/all-videos?page=${currentPage}&limit=${LIMIT}`;
     try {
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error('Network response was not ok');

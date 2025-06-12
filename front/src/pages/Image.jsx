@@ -2,11 +2,18 @@ import { useState } from "react";
 import { Button, FormControl } from "react-bootstrap";
 import PopimagePic from "../components/PopimagePic";
 import React from "react";
+import AdBanner from '../components/AdBanner'; // Import your ad component
+
+
 
 function Image() {
   const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState("");
   const [messages, setMessages] = useState([]);
+
+  // Track submission count and ad visibility
+  const [submitCount, setSubmitCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
 
   // Handle image selection from file input or camera
   const handleImageSelect = (event) => {
@@ -38,10 +45,13 @@ function Image() {
     setImageFile(null);
 
     try {
-const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/process`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:8000/process`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const data = await response.json();
 
@@ -52,6 +62,16 @@ const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/process`, 
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+
+      // Increment submission count and show ad every 3 submissions
+      setSubmitCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 2 === 0) {
+          setShowAd(true);
+          setTimeout(() => setShowAd(false), 30000); // Hide ad after 30 seconds
+        }
+        return newCount;
+      });
     } catch (err) {
       console.error("Upload failed:", err);
     }
@@ -75,17 +95,13 @@ const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/process`, 
           }}
         >
           <div style={styles.messageContainer}>
-            {msg.image && (
-              <img
-                src={msg.image}
-                alt="user-upload"
-                style={styles.image}
-              />
-            )}
+            {msg.image && <img src={msg.image} alt="user-upload" style={styles.image} />}
             <p style={styles.text}>{msg.text}</p>
             {msg.downloadable && (
               <a
-                href={`http://localhost:8000/download/imagepage/${msg.downloadable.split("/").pop()}`}
+                href={`http://localhost:8000/download/imagepage/${msg.downloadable
+                  .split("/")
+                  .pop()}`}
                 download
                 style={styles.downloadLink}
               >
@@ -100,16 +116,15 @@ const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/process`, 
         </div>
       ))}
 
+      {/* Show ad every 3 submissions */}
+      {showAd && <AdBanner />}
+
       {/* Input Area */}
       <div style={styles.inputContainer}>
         {/* Image Preview Above Text Area */}
         {imageFile && (
           <div style={styles.previewContainer}>
-            <img
-              src={URL.createObjectURL(imageFile)}
-              alt="preview"
-              style={styles.previewImage}
-            />
+            <img src={URL.createObjectURL(imageFile)} alt="preview" style={styles.previewImage} />
           </div>
         )}
 

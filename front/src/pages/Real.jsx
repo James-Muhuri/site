@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Button, Dropdown } from "react-bootstrap";
+import AdBanner from '../components/AdBanner'; // Import your ad component
+// Simple ad banner component placeholder (replace with your actual ad component)
+
 
 function Real() {
   const [videoFile, setVideoFile] = useState(null);
@@ -9,6 +12,10 @@ function Real() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+
+  // Track form submissions to show ad every 3 submissions
+  const [submitCount, setSubmitCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
 
   const handleVideoSelect = (e) => {
     const file = e.target.files[0];
@@ -68,8 +75,8 @@ function Real() {
     setAudioURL("");
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_PYTHON_API_URL}/api/upload-video-audio`, {
-  // your fetch options here
+      const response = await fetch(`http://localhost:8000/api/upload-video-audio`, {
+        // your fetch options here
         method: "POST",
         body: formData,
       });
@@ -88,6 +95,16 @@ function Real() {
       setVideoFile(null);
       setAudioBlob(null);
       setAudioURL("");
+
+      // Increment submission count and show ad every 3 submissions
+      setSubmitCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 2 === 0) {
+          setShowAd(true);
+          setTimeout(() => setShowAd(false), 30000); // Hide ad after 30 seconds
+        }
+        return newCount;
+      });
     } catch (err) {
       console.error("Upload failed:", err);
       setMessages((prev) => [
@@ -103,9 +120,8 @@ function Real() {
   };
 
   return (
-    <div style={{ maxHeight: '90vh', overflowY: 'auto', padding: '20px' }}>
+    <div style={{ maxHeight: "90vh", overflowY: "auto", padding: "20px" }}>
       <div style={{ maxWidth: 800, margin: "auto", paddingTop: 30 }}>
-
         {/* ✅ Preview before upload */}
         {(videoFile || audioURL) && (
           <div style={{ marginBottom: 20 }}>
@@ -128,6 +144,9 @@ function Real() {
             </p>
           </div>
         )}
+
+        {/* Show ad every 3 submissions */}
+        {showAd && <AdBanner />}
 
         {/* ✅ Uploaded messages */}
         {messages.map((msg, idx) => (

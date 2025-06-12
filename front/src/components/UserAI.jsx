@@ -13,7 +13,7 @@ function UserAI({ files, setFiles, onSaveComplete }) {
     const fetchUserDoc = async () => {
       try {
         const user_id = localStorage.getItem("user_id");
-       const res = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/get-userdoc`, { user_id });
+       const res = await axios.post(`http://localhost:8000/get-userdoc`, { user_id });
         if (res?.data?.file) {
           setUploadedFileName(res.data.file);
         }
@@ -58,7 +58,7 @@ function UserAI({ files, setFiles, onSaveComplete }) {
       formData.append("file", file);
       formData.append("user_id", localStorage.getItem("user_id"));
 
-      const response = await axios.post(`${process.env.REACT_APP_PYTHON_API_URL}/upload-userdoc`, formData, {
+      const response = await axios.post(`http://localhost:8000/upload-userdoc`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

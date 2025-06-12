@@ -6,53 +6,67 @@ const Signup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const usernameRegex = /^[a-zA-Z0-9_.-]{3,30}$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+ const passwordRegex = /^.{8,}$/;
+
   const emailRegex = /^[\w.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const phoneRegex = /^\+?[1-9]\d{9,14}$/; // Basic E.164 validation
 
+  
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!usernameRegex.test(username)) {
-      setErrorMessage('Username must be 3–30 characters, alphanumeric or underscores only.');
-      return;
+  if (!usernameRegex.test(username)) {
+    setErrorMessage('Username must be 3–30 characters, alphanumeric or underscores only.');
+    return;
+  }
+
+  if (!passwordRegex.test(password)) {
+    setErrorMessage('Password must be at least 8 characters.');
+    return;
+  }
+
+  if (!emailRegex.test(email)) {
+    setErrorMessage('Enter a valid email address.');
+    return;
+  }
+
+  if (!phoneRegex.test(phone)) {
+    setErrorMessage('Enter a valid phone number in international format (e.g., +1234567890).');
+    return;
+  }
+
+  try {
+   const response = await axios.post('http://localhost:5000/api/signup', {
+
+
+      username,
+      password,
+      email,    // send email here
+      phone     // send phone here
+    });
+
+    if (response.data.success) {
+      setSuccessMessage('🎉 Account created! Check your phone for the verification code.');
+      setErrorMessage('');
+      setUsername('');
+      setPassword('');
+      setEmail('');
+      setPhone('');
+      setTimeout(() => navigate('/login'), 2500);
+    } else {
+      setErrorMessage(response.data.message || 'Signup failed.');
     }
-
-    if (!passwordRegex.test(password)) {
-      setErrorMessage('Password must be at least 6 characters with one letter and one number.');
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      setErrorMessage('Enter a valid email address.');
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${process.env.REACT_APP_EXPRESS_API_URL}/api/signup`, {
-        username,
-        password,
-        contact: email,
-      });
-
-      if (response.data.success) {
-        setSuccessMessage('🎉 Account created! Check your email for the verification code.');
-        setErrorMessage('');
-        setUsername('');
-        setPassword('');
-        setEmail('');
-        setTimeout(() => navigate('/login'), 2500);
-      } else {
-        setErrorMessage(response.data.message || 'Signup failed.');
-      }
-    } catch (error) {
-      setErrorMessage('Server error. Please try again.');
-    }
-  };
+  } catch (error) {
+    console.error(error.response || error);  // Log full error for debugging
+    setErrorMessage('Server error. Please try again.');
+  }
+};
 
   return (
     <div style={styles.container}>
@@ -83,6 +97,14 @@ const Signup = () => {
             required
             style={styles.input}
           />
+          <input
+            type="tel"
+            placeholder="Phone Number (e.g. +1234567890)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+            style={styles.input}
+          />
           <button type="submit" style={styles.button}>Sign Up</button>
         </form>
 
@@ -91,7 +113,6 @@ const Signup = () => {
 
         <p style={styles.links}>
           Already have an account? <Link to="/">Login</Link><br />
-          
         </p>
       </div>
     </div>

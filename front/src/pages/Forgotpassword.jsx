@@ -8,10 +8,10 @@ function ForgotPassword() {
   const [validated, setValidated] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
 
   const handleChange = (e) => {
-    setEmail(e.target.value);
+    setPhone(e.target.value);
     setErrorMessage('');
     setSuccessMessage('');
   };
@@ -20,8 +20,8 @@ function ForgotPassword() {
     e.preventDefault();
     const form = e.currentTarget;
 
-    if (!email || !/^[\w.-]+@[\w.-]+\.\w{2,}$/.test(email)) {
-      setErrorMessage('Please enter a valid email address.');
+    if (!phone || !/^\+?[1-9]\d{9,14}$/.test(phone)) {
+      setErrorMessage('Please enter a valid phone number.');
       setValidated(true);
       return;
     }
@@ -31,11 +31,11 @@ function ForgotPassword() {
     } else {
       try {
         const response = await axios.post(
-  `${process.env.REACT_APP_EXPRESS_API_URL}/api/forgot-password`,
-  { email }
-);
+          `http://localhost:5000/api/forgot-password`,
+          { phone }
+        );
         if (response.data.success) {
-          setSuccessMessage('A verification code has been sent to your email.');
+          setSuccessMessage('A verification code has been sent to your phone.');
           setErrorMessage('');
         } else {
           setErrorMessage(response.data.message);
@@ -55,17 +55,17 @@ function ForgotPassword() {
       <Row className="justify-content-center">
         <Col xs={12} sm={10} md={8} lg={6}>
           <Form noValidate validated={validated} onSubmit={handleSubmit}>
-            <Form.Group controlId="email">
-              <Form.Label>Email</Form.Label>
+            <Form.Group controlId="phone">
+              <Form.Label>Phone Number</Form.Label>
               <Form.Control
                 required
-                type="email"
-                placeholder="Enter your registered email"
-                value={email}
+                type="tel"
+                placeholder="Enter your registered phone number"
+                value={phone}
                 onChange={handleChange}
               />
               <Form.Control.Feedback type="invalid">
-                Please provide a valid email.
+                Please provide a valid phone number.
               </Form.Control.Feedback>
             </Form.Group>
 

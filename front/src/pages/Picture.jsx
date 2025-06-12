@@ -24,6 +24,12 @@ function Picture() {
           </Link>
           
         </div>
+        <div className="col-12 col-md-6">
+          <Link to="/age">
+            <button className="btn btn-success w-100">Age Predictor </button>
+          </Link>
+          
+        </div>
       </div>
     </div>
   );

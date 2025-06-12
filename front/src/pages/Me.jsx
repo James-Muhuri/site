@@ -20,7 +20,7 @@ function Me() {
 
         try {
           const xhr = new XMLHttpRequest();
-         xhr.open("POST", `${process.env.REACT_APP_EXPRESS_API_URL}/upload-video`);
+         xhr.open("POST", `http://localhost:5000/upload-video`);
 
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {

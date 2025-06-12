@@ -11,7 +11,7 @@ function Search() {
   async function fetchFiles() {
     try {
       // Assuming your backend sends the list of uploaded videos and usernames
-     const response = await axios.get(`${process.env.REACT_APP_EXPRESS_API_URL}/fetch-uploaded-videos`);
+     const response = await axios.get(`http://localhost:5000/fetch-uploaded-videos`);
       setFiles(response.data);  // Store the fetched files in state
     } catch (error) {
       console.error("Error while fetching files:", error);
