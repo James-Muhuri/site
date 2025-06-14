@@ -93,12 +93,14 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgotpassword" element={<Forgotpassword />} />
 
-   <Route
+      <Route
           path="/app"
           element={
-            <Layout />}
-          
-  >
+            <PrivateRoute>
+              <Layout />
+            </PrivateRoute>
+          }
+        >
           <Route path="course" element={<Course />}>
             <Route path="home" element={<Home />} />
             
